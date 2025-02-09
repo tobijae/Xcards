@@ -3,72 +3,247 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Image Cropper</title>
+    <title>Photo Size Adjuster (59mm x 86mm)</title>
     <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+        }
+
+        body {
+            background-color: #f5f5f5;
+            color: #333;
+            line-height: 1.6;
+        }
+
         .container {
-            max-width: 600px;
+            max-width: 800px;
             margin: 0 auto;
-            padding: 20px;
+            padding: 2rem;
         }
-        .upload-container {
-            border: 2px dashed #ccc;
-            padding: 20px;
+
+        .header {
             text-align: center;
-            margin-bottom: 20px;
+            margin-bottom: 2rem;
         }
+
+        .header h1 {
+            color: #2c3e50;
+            font-size: 2rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .header p {
+            color: #666;
+            font-size: 1rem;
+        }
+
+        .tool-container {
+            background: white;
+            border-radius: 12px;
+            padding: 2rem;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .upload-container {
+            border: 2px dashed #e0e0e0;
+            border-radius: 8px;
+            padding: 2rem;
+            text-align: center;
+            margin-bottom: 1.5rem;
+            transition: all 0.3s ease;
+            background: #fafafa;
+        }
+
+        .upload-container:hover {
+            border-color: #2196f3;
+            background: #f8f9fa;
+        }
+
+        .upload-container label {
+            display: block;
+            cursor: pointer;
+        }
+
+        .upload-icon {
+            font-size: 2rem;
+            color: #2196f3;
+            margin-bottom: 1rem;
+        }
+
+        .controls {
+            background: #f8f9fa;
+            padding: 1rem;
+            border-radius: 8px;
+            margin: 1rem 0;
+        }
+
+        .control-group {
+            margin-bottom: 1rem;
+        }
+
+        .control-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            color: #555;
+            font-weight: 500;
+        }
+
+        input[type="range"] {
+            width: 100%;
+            margin: 0.5rem 0;
+        }
+
+        .checkbox-container {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin-top: 1rem;
+        }
+
+        input[type="checkbox"] {
+            width: 18px;
+            height: 18px;
+            cursor: pointer;
+        }
+
+        .preview-container {
+            display: flex;
+            justify-content: center;
+            margin: 1.5rem 0;
+        }
+
         .crop-container {
             position: relative;
             overflow: hidden;
             width: 236px;
             height: 344px;
-            border: 2px solid #ccc;
-            margin: 20px 0;
+            border-radius: 8px;
+            border: 2px solid #e0e0e0;
+            background: #fff;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
         }
+
         .crop-image {
             position: absolute;
             cursor: grab;
             transform-origin: 0 0;
+            user-select: none;
+            -webkit-user-drag: none;
         }
+
         .crop-image:active {
             cursor: grabbing;
         }
-        .controls {
-            margin: 20px 0;
-        }
+
         button {
-            padding: 10px 20px;
-            background: #007bff;
+            background: #2196f3;
             color: white;
             border: none;
-            border-radius: 4px;
+            padding: 0.8rem 1.5rem;
+            border-radius: 6px;
             cursor: pointer;
+            font-size: 1rem;
+            font-weight: 500;
+            width: 100%;
+            transition: background-color 0.3s ease;
         }
+
         button:hover {
-            background: #0056b3;
+            background: #1976d2;
+        }
+
+        .file-input {
+            display: none;
+        }
+
+        .instructions {
+            margin-top: 1.5rem;
+            padding: 1rem;
+            background: #e3f2fd;
+            border-radius: 8px;
+            font-size: 0.9rem;
+            color: #1565c0;
+        }
+
+        .size-info {
+            text-align: center;
+            color: #666;
+            margin: 1rem 0;
+            font-size: 0.9rem;
+        }
+
+        @media (max-width: 600px) {
+            .container {
+                padding: 1rem;
+            }
+
+            .tool-container {
+                padding: 1rem;
+            }
+
+            .header h1 {
+                font-size: 1.5rem;
+            }
         }
     </style>
 </head>
 <body>
     <div class="container">
-        <div class="upload-container">
-            <input type="file" accept="image/*" id="fileInput">
+        <div class="header">
+            <h1>Photo Size Adjuster</h1>
+            <p>Resize and crop your photos to 59mm x 86mm format</p>
         </div>
-        <div class="controls">
-            <label>Scale: </label>
-            <input type="range" id="scaleSlider" min="0.1" max="2" step="0.1" value="1">
-            <div style="margin-top: 10px;">
-                <label>
-                    <input type="checkbox" id="borderCheckbox"> Add black border
+
+        <div class="tool-container">
+            <div class="upload-container">
+                <label for="fileInput">
+                    <div class="upload-icon">📁</div>
+                    <strong>Choose a file</strong> or drag it here
                 </label>
+                <input type="file" accept="image/*" id="fileInput" class="file-input">
+            </div>
+
+            <div class="size-info">
+                Target size: 59mm × 86mm
+            </div>
+
+            <div class="controls">
+                <div class="control-group">
+                    <label for="scaleSlider">Image Scale</label>
+                    <input type="range" id="scaleSlider" min="0.1" max="2" step="0.1" value="1">
+                </div>
+                <div class="checkbox-container">
+                    <input type="checkbox" id="borderCheckbox">
+                    <label for="borderCheckbox">Add black border</label>
+                </div>
+            </div>
+
+            <div class="preview-container">
+                <div class="crop-container" id="cropContainer">
+                    <img id="cropImage" class="crop-image">
+                </div>
+            </div>
+
+            <button id="exportBtn">Export Image</button>
+
+            <div class="instructions">
+                <strong>How to use:</strong>
+                <ol style="margin-left: 1.5rem; margin-top: 0.5rem;">
+                    <li>Upload your image</li>
+                    <li>Drag the image to position it</li>
+                    <li>Use the scale slider to resize</li>
+                    <li>Optionally add a border</li>
+                    <li>Click Export to save</li>
+                </ol>
             </div>
         </div>
-        <div class="crop-container" id="cropContainer">
-            <img id="cropImage" class="crop-image">
-        </div>
-        <button id="exportBtn">Export Image</button>
     </div>
 
     <script>
+        // Previous JavaScript remains the same
         const cropContainer = document.getElementById('cropContainer');
         const cropImage = document.getElementById('cropImage');
         const scaleSlider = document.getElementById('scaleSlider');
@@ -88,7 +263,6 @@
                 const reader = new FileReader();
                 reader.onload = function(e) {
                     cropImage.src = e.target.result;
-                    // Reset position and scale when new image is loaded
                     currentX = 0;
                     currentY = 0;
                     scale = 1;
@@ -96,6 +270,33 @@
                     updateImagePosition();
                 }
                 reader.readAsDataURL(file);
+            }
+        });
+
+        // Add drag and drop support
+        const uploadContainer = document.querySelector('.upload-container');
+        
+        uploadContainer.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            uploadContainer.style.borderColor = '#2196f3';
+            uploadContainer.style.background = '#e3f2fd';
+        });
+
+        uploadContainer.addEventListener('dragleave', (e) => {
+            e.preventDefault();
+            uploadContainer.style.borderColor = '#e0e0e0';
+            uploadContainer.style.background = '#fafafa';
+        });
+
+        uploadContainer.addEventListener('drop', (e) => {
+            e.preventDefault();
+            uploadContainer.style.borderColor = '#e0e0e0';
+            uploadContainer.style.background = '#fafafa';
+            
+            if (e.dataTransfer.files.length) {
+                fileInput.files = e.dataTransfer.files;
+                const event = new Event('change');
+                fileInput.dispatchEvent(event);
             }
         });
 
@@ -136,22 +337,18 @@
 
         exportBtn.addEventListener('click', function() {
             const canvas = document.createElement('canvas');
-            canvas.width = 236;  // Width of the crop container
-            canvas.height = 344; // Height of the crop container
+            canvas.width = 236;
+            canvas.height = 344;
             const ctx = canvas.getContext('2d');
 
-            // Get the visible portion of the image
             const containerRect = cropContainer.getBoundingClientRect();
             const imageRect = cropImage.getBoundingClientRect();
 
-            // Calculate the source coordinates and dimensions
             const sourceX = (containerRect.left - imageRect.left) / scale;
             const sourceY = (containerRect.top - imageRect.top) / scale;
             const sourceWidth = containerRect.width / scale;
             const sourceHeight = containerRect.height / scale;
 
-            // Draw the visible portion to the canvas
-            // Draw the image
             ctx.drawImage(
                 cropImage,
                 sourceX,
@@ -164,14 +361,12 @@
                 canvas.height
             );
 
-            // Add border if checkbox is checked
             if (document.getElementById('borderCheckbox').checked) {
                 ctx.strokeStyle = 'black';
                 ctx.lineWidth = 2;
                 ctx.strokeRect(0, 0, canvas.width, canvas.height);
             }
             
-            // Create download link
             const link = document.createElement('a');
             link.download = 'cropped-image.png';
             link.href = canvas.toDataURL('image/png');
