@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Image Cropper</title>
+    <style>
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .upload-container {
+            border: 2px dashed #ccc;
+            padding: 20px;
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        .crop-container {
+            position: relative;
+            overflow: hidden;
+            width: 236px;
+            height: 344px;
+            border: 2px solid #ccc;
+            margin: 20px 0;
+        }
+        .crop-image {
+            position: absolute;
+            cursor: grab;
+            transform-origin: 0 0;
+        }
+        .crop-image:active {
+            cursor: grabbing;
+        }
+        .controls {
+            margin: 20px 0;
+        }
+        button {
+            padding: 10px 20px;
+            background: #007bff;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        button:hover {
+            background: #0056b3;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="upload-container">
+            <input type="file" accept="image/*" id="fileInput">
+        </div>
+        <div class="controls">
+            <label>Scale: </label>
+            <input type="range" id="scaleSlider" min="0.1" max="2" step="0.1" value="1">
+            <div style="margin-top: 10px;">
+                <label>
+                    <input type="checkbox" id="borderCheckbox"> Add black border
+                </label>
+            </div>
+        </div>
+        <div class="crop-container" id="cropContainer">
+            <img id="cropImage" class="crop-image">
+        </div>
+        <button id="exportBtn">Export Image</button>
+    </div>
+
+    <script>
+        const cropContainer = document.getElementById('cropContainer');
+        const cropImage = document.getElementById('cropImage');
+        const scaleSlider = document.getElementById('scaleSlider');
+        const fileInput = document.getElementById('fileInput');
+        const exportBtn = document.getElementById('exportBtn');
+
+        let isDragging = false;
+        let currentX = 0;
+        let currentY = 0;
+        let initialX = 0;
+        let initialY = 0;
+        let scale = 1;
+
+        fileInput.addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    cropImage.src = e.target.result;
+                    // Reset position and scale when new image is loaded
+                    currentX = 0;
+                    currentY = 0;
+                    scale = 1;
+                    scaleSlider.value = 1;
+                    updateImagePosition();
+                }
+                reader.readAsDataURL(file);
+            }
+        });
+
+        cropContainer.addEventListener('mousedown', dragStart);
+        document.addEventListener('mousemove', drag);
+        document.addEventListener('mouseup', dragEnd);
+
+        function dragStart(e) {
+            if (e.target === cropImage) {
+                isDragging = true;
+                initialX = e.clientX - currentX;
+                initialY = e.clientY - currentY;
+            }
+        }
+
+        function drag(e) {
+            if (isDragging) {
+                e.preventDefault();
+                currentX = e.clientX - initialX;
+                currentY = e.clientY - initialY;
+                updateImagePosition();
+            }
+        }
+
+        function dragEnd(e) {
+            isDragging = false;
+        }
+
+        function updateImagePosition() {
+            scale = parseFloat(scaleSlider.value);
+            cropImage.style.transform = `translate(${currentX}px, ${currentY}px) scale(${scale})`;
+        }
+
+        scaleSlider.addEventListener('input', function(e) {
+            scale = parseFloat(e.target.value);
+            updateImagePosition();
+        });
+
+        exportBtn.addEventListener('click', function() {
+            const canvas = document.createElement('canvas');
+            canvas.width = 236;  // Width of the crop container
+            canvas.height = 344; // Height of the crop container
+            const ctx = canvas.getContext('2d');
+
+            // Get the visible portion of the image
+            const containerRect = cropContainer.getBoundingClientRect();
+            const imageRect = cropImage.getBoundingClientRect();
+
+            // Calculate the source coordinates and dimensions
+            const sourceX = (containerRect.left - imageRect.left) / scale;
+            const sourceY = (containerRect.top - imageRect.top) / scale;
+            const sourceWidth = containerRect.width / scale;
+            const sourceHeight = containerRect.height / scale;
+
+            // Draw the visible portion to the canvas
+            // Draw the image
+            ctx.drawImage(
+                cropImage,
+                sourceX,
+                sourceY,
+                sourceWidth,
+                sourceHeight,
+                0,
+                0,
+                canvas.width,
+                canvas.height
+            );
+
+            // Add border if checkbox is checked
+            if (document.getElementById('borderCheckbox').checked) {
+                ctx.strokeStyle = 'black';
+                ctx.lineWidth = 2;
+                ctx.strokeRect(0, 0, canvas.width, canvas.height);
+            }
+            
+            // Create download link
+            const link = document.createElement('a');
+            link.download = 'cropped-image.png';
+            link.href = canvas.toDataURL('image/png');
+            link.click();
+        });
+    </script>
+</body>
+</html>
